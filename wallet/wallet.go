@@ -31,3 +31,12 @@ func (w *Wallet) Withdraw(amount AnCoin) error {
 func (w *Wallet) Balance() AnCoin {
 	return w.balance
 }
+
+func (w *Wallet) Transfer(target *Wallet, amount AnCoin) error {
+	if w.balance < amount {
+		return fmt.Errorf("%w: transfer amount exceeds balance", InsufficientFundError)
+	}
+	w.balance -= amount
+	target.balance += amount
+	return nil
+}

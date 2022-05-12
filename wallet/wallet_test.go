@@ -18,7 +18,7 @@ func TestAnCoin(t *testing.T) {
 	})
 }
 
-func TestWallet(t *testing.T) {
+func TestSingleOperation(t *testing.T) {
 	t.Run("test deposit normal amount", func(t *testing.T) {
 		wallet := Wallet{}
 
@@ -41,12 +41,51 @@ func TestWallet(t *testing.T) {
 
 	t.Run("test over-withdrawal", func(t *testing.T) {
 		wallet := Wallet{
-			6,
+			balance: AnCoin(6),
 		}
 
 		err := wallet.Withdraw(AnCoin(10))
 
 		assert.ErrorIs(t, err, InsufficientFundError, "over-withdrawal must throw an InsufficientFundError")
+
+		assertWalletBalance(t, &wallet, AnCoin(6))
+	})
+
+}
+
+func TestComplexOperations(t *testing.T) {
+	t.Run("test normal transfer", func(t *testing.T) {
+		source := Wallet{
+			balance: AnCoin(45),
+		}
+
+		target := Wallet{
+			balance: AnCoin(10),
+		}
+
+		err := source.Transfer(&target, AnCoin(25))
+
+		assert.NoError(t, err)
+
+		assertWalletBalance(t, &source, AnCoin(20))
+		assertWalletBalance(t, &target, AnCoin(35))
+	})
+
+	t.Run("test overdrawn transfer", func(t *testing.T) {
+		source := Wallet{
+			balance: AnCoin(10),
+		}
+
+		target := Wallet{
+			balance: AnCoin(10),
+		}
+
+		err := source.Transfer(&target, AnCoin(25))
+
+		assert.ErrorIs(t, err, InsufficientFundError)
+
+		assertWalletBalance(t, &source, AnCoin(10))
+		assertWalletBalance(t, &target, AnCoin(10))
 	})
 }
 
